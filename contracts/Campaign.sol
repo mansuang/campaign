@@ -7,14 +7,15 @@ contract Campaign {
         uint value;
         address recipient;
         bool complete;
-        uint approvalCount;
+        uint approvalsCount;
         mapping(address => bool) approvals;
     }
 
-    Request[] public requests;
     address public manager;
     uint public minimumContribution;
     mapping(address =>bool) public approvers;
+    uint numRequests;
+    mapping (uint => Request) requests;
 
     modifier restricted() {
         require(msg.sender == manager, "Only manager allowed");
@@ -33,15 +34,12 @@ contract Campaign {
     }
 
     function createRequest(string memory description, uint value, address recipient) public restricted {
-        Request memory newRequest = Request({
-            description: description,
-            value: value,
-            recipient: recipient,
-            complete: false,
-            approvalCount: 0
-        });
-
-        requests.push(newRequest);
+        Request storage r = requests[numRequests++];
+        r.description = description;
+        r.value = value;
+        r.recipient = recipient;
+        r.complete = false;
+        r.approvalsCount = 0;
     }
 
     function approveRequest(uint index) public {
@@ -51,7 +49,7 @@ contract Campaign {
         require(!request.approvals[msg.sender],"not have this contract");
 
         request.approvals[msg.sender] = true;
-        request.approvalCount++;
+        request.approvalsCount++;
 
 
     }
