@@ -9,10 +9,10 @@ contract Campaign {
         bool complete;
     }
 
+    Request[] public requests;
     address public manager;
     uint public minimumContribution;
-    address[] public approvers;
-    Request[] public requests;
+    mapping(address =>bool) public approvers;
 
     modifier restricted() {
         require(msg.sender == manager, "Only manager allowed");
@@ -27,7 +27,7 @@ contract Campaign {
     function contribute() public payable {
         require(msg.value > minimumContribution, "Value must greater than minumum contribution" );
 
-        approvers.push(msg.sender);
+        approvers[msg.sender] = true;
     }
 
     function createRequest(string memory description, uint value, address recipient) public restricted {
