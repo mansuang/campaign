@@ -1,5 +1,6 @@
 const Campaign = artifacts.require("Campaign");
 
+const { receiveMessageOnPort } = require("worker_threads");
 const chai = require("./setupchai.js");
 const BN = web3.utils.BN;
 
@@ -19,6 +20,8 @@ contract("Campaign Test", async (accounts) => {
         let campaignInstance = await Campaign.deployed();
 
         expect( campaignInstance.contribute({from:deploymentAccount, value: 101})).to.eventually.be.fulfilled;
+
+        // console.log( await web3.eth.getBalance(campaignInstance.address));
     });
 
     it("could not contribute value less than minimum", async ()=>{
@@ -27,4 +30,35 @@ contract("Campaign Test", async (accounts) => {
         expect(campaignInstance.contribute({from:deploymentAccount, value: 1}) ).to.eventually.be.rejected;
     });
 
+    it("can create requests and vote only once", async ()=>{
+        let campaignInstance = await Campaign.deployed();
+
+        // console.log(campaignInstance.requests);
+        // expect(campaignInstance.contribute({from:deploymentAccount, value: 1}) ).to.eventually.be.fulfilled;
+        expect( campaignInstance.createRequest("Buy batteries", web3.utils.toWei("2","ether"),deploymentAccount) ).to.eventually.be.fulfilled;
+        // console.log(await campaignInstance.numRequests);
+
+        expect(campaignInstance.getDescription(0) ).to.eventually.equals("Buy batteries")
+        expect(await campaignInstance.getApprovalsCount(0) ).to.be.a.bignumber.equal(new BN(0))
+        // console.log( await web3.eth.getBalance(deploymentAccount));
+        // await campaignInstance.approveRequest(0);
+        expect( campaignInstance.approveRequest(0, {from: deploymentAccount} )).to.eventually.be.fulfilled;
+        expect(await campaignInstance.getApprovalsCount(0) ).to.be.a.bignumber.equal(new BN(1))
+        // console.log(await campaignInstance.getApprovalsCount(0));
+
+        // allow only vote 1 time
+        expect( campaignInstance.approveRequest(0) ).to.eventually.be.rejected;
+
+    });
+
+    it("only contribute person is allowed to vote", async () => {
+        let campaignInstance = await Campaign.deployed();
+
+        // console.log(campaignInstance.requests);
+        // expect(campaignInstance.contribute({from:deploymentAccount, value: 1}) ).to.eventually.be.fulfilled;
+        expect( campaignInstance.createRequest("Buy batteries", web3.utils.toWei("2","ether"),deploymentAccount) ).to.eventually.be.fulfilled;
+        // console.log(await campaignInstance.numRequests);
+
+        expect( campaignInstance.approveRequest(0, {from: anotherAccount} )).to.eventually.be.rejected;    
+    })
 });

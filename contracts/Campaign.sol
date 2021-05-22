@@ -15,7 +15,7 @@ contract Campaign {
     uint public minimumContribution;
     mapping(address =>bool) public approvers;
     uint numRequests;
-    mapping (uint => Request) requests;
+    mapping (uint => Request) public requests;
 
     modifier restricted() {
         require(msg.sender == manager, "Only manager allowed");
@@ -40,6 +40,8 @@ contract Campaign {
         r.recipient = recipient;
         r.complete = false;
         r.approvalsCount = 0;
+
+        // console.log(r);
     }
 
     function approveRequest(uint index) public {
@@ -50,7 +52,17 @@ contract Campaign {
 
         request.approvals[msg.sender] = true;
         request.approvalsCount++;
-
-
     }
+
+    function contractBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+
+    function getDescription(uint index) public view returns (string memory) {
+        return requests[index].description;
+    }
+    function getApprovalsCount(uint index) public view returns (uint) {
+        return requests[index].approvalsCount;
+    }
+
 }
