@@ -72,7 +72,7 @@ contract("Campaign Test", async (accounts) => {
     });
 
     it("can finalize the request and transfer to recepient", async () => {
-        let campaignInstance = await Campaign.new(100);
+        let campaignInstance = await Campaign.new(100, deploymentAccount);
         
 
         await campaignInstance.contribute({from: deploymentAccount, value: web3.utils.toWei("3","ether")});
